@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TeX → PNG 渲染器</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #f7f7f9; }
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: 100%; padding: 12px; box-sizing: border-box; }
+    textarea { width: 100%; height: calc(100vh - 150px); resize: vertical; padding: 12px; border-radius: 8px; border: 1px solid #d0d7de; box-sizing: border-box; font-size: 14px; line-height: 1.6; background: #fff; }
+    .panel { background: white; border: 1px solid #d0d7de; border-radius: 8px; padding: 12px; overflow: auto; }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    button { padding: 8px 12px; border-radius: 6px; border: 1px solid #1f883d; background: #2da44e; color: white; cursor: pointer; }
+    button.secondary { border-color: #0969da; background: #218bff; }
+    .output { min-height: 200px; }
+    img.formula-inline { vertical-align: middle; }
+    img.formula-block { display: block; margin: 8px auto; }
+    .hint { color: #57606a; font-size: 12px; }
+  .settings { display: grid; grid-template-columns: repeat(6, minmax(140px, 1fr)); gap: 8px; margin: 8px 0; }
+  .settings label { display: flex; flex-direction: column; font-size: 12px; color: #57606a; }
+  .settings input, .settings select { padding: 6px 8px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <div class="toolbar">
+        <button id="renderBtn">转换 (Ctrl+Enter)</button>
+        <button id="sampleBtn" class="secondary">填充示例</button>
+        <span class="hint">支持 $a^2+b^2=c^2$ 与 $$\int_0^1 x^2 dx$$</span>
+      </div>
+      <textarea id="input" placeholder="在此输入文本与 TeX 公式混合内容..."></textarea>
+      <div class="settings">
+        <label>字体
+          <select id="fontFamilyPreset">
+            <option value="KaTeX_Main, Cambria Math, STIXGeneral, 'Times New Roman', serif">KaTeX 专业数学字体（推荐）</option>
+            <option value="Times New Roman, serif">Times New Roman（部分支持）</option>
+            <option value="Arial, sans-serif">Arial（部分支持）</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Courier New, monospace">Courier New（等宽）</option>
+          </select>
+          <input id="fontFamily" type="text" value="KaTeX_Main, Cambria Math, STIXGeneral, 'Times New Roman', serif" />
+        </label>
+        <label>字号(px)
+          <input id="fontSize" type="number" min="8" max="200" step="1" value="20" />
+        </label>
+        <label>字体颜色
+          <select id="colorPreset">
+            <option value="#000000">黑色</option>
+            <option value="#1f2328" selected>深灰</option>
+            <option value="#6e7781">次要灰</option>
+            <option value="#0969da">蓝色</option>
+            <option value="#1f883d">绿色</option>
+            <option value="#d1242f">红色</option>
+            <option value="#bf3989">洋红</option>
+          </select>
+          <input id="color" type="color" value="#1f2328" />
+        </label>
+        <label>背景颜色（transparent 表示透明）
+          <select id="backgroundPreset">
+            <option value="transparent" selected>透明</option>
+            <option value="#ffffff">白色</option>
+            <option value="#f6f8fa">浅灰</option>
+            <option value="#000000">黑色</option>
+            <option value="#fffbe6">米色</option>
+          </select>
+          <input id="background" type="text" value="transparent" />
+        </label>
+        <label>内边距(px)
+          <input id="padding" type="number" min="0" max="64" step="1" value="4" />
+        </label>
+        <label>缩放(scale)
+          <input id="scale" type="number" min="1" max="4" step="0.5" value="2" />
+        </label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="output" id="output"></div>
+    </div>
+  </div>
+  <script>
+    const input = document.getElementById('input');
+    const output = document.getElementById('output');
+    const renderBtn = document.getElementById('renderBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+
+    function syncPresetToInputs() {
+      const ff = document.getElementById('fontFamilyPreset').value;
+      document.getElementById('fontFamily').value = ff;
+      const color = document.getElementById('colorPreset').value;
+      document.getElementById('color').value = color;
+      const bg = document.getElementById('backgroundPreset').value;
+      document.getElementById('background').value = bg;
+    }
+
+    function readOptions() {
+      const paddingInput = document.getElementById('padding').value;
+      const scaleInput = document.getElementById('scale').value;
+      return {
+        fontFamily: document.getElementById('fontFamily').value,
+        fontSize: Number(document.getElementById('fontSize').value) || 20,
+        color: document.getElementById('color').value,
+        background: document.getElementById('background').value,
+        padding: paddingInput === '' ? 4 : Number(paddingInput),
+        scale: scaleInput === '' ? 2 : Number(scaleInput)
+      };
+    }
+
+    async function renderNow() {
+      const text = input.value;
+      output.innerHTML = '渲染中...';
+      try {
+        const res = await fetch('/api/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, options: readOptions() })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '渲染失败');
+        output.innerHTML = data.html;
+      } catch (e) {
+        output.innerHTML = '<div style="color:#d1242f">' + e.message + '</div>';
+      }
+    }
+
+  renderBtn.addEventListener('click', renderNow);
+  document.getElementById('fontFamilyPreset').addEventListener('change', syncPresetToInputs);
+  document.getElementById('colorPreset').addEventListener('change', syncPresetToInputs);
+  document.getElementById('backgroundPreset').addEventListener('change', syncPresetToInputs);
+  // 初始化同步一次
+  syncPresetToInputs();
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        renderNow();
+      }
+    });
+    sampleBtn.addEventListener('click', () => {
+      input.value = '勾股定理：$a^2 + b^2 = c^2$\n\n块级：\n$$\\int_0^1 x^2 dx = \\frac{1}{3}$$';
+    });
+  </script>
+</body>
+</html>
