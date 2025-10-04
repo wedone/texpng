@@ -72,7 +72,7 @@ function splitTextWithMath(input) {
 }
 
 async function renderFormulaToPng(page, latex, displayMode = false, options = {}) {
-  // 使用 KaTeX 先渲染成 HTML+CSS，再用 Puppeteer 截屏成透明 PNG
+  // 使用 KaTeX 渲染，保持其数学字体的专业性
   const html = katex.renderToString(latex, {
     displayMode,
     throwOnError: false,
@@ -98,17 +98,49 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
   await page.setContent(`<!doctype html><html><head>
     <meta charset="utf-8" />
     <style>
-      /* 先注入 KaTeX 基础样式 */
+      /* KaTeX 基础样式 */
       ${css}
-      /* 再应用用户覆盖，顺序在后，权重更高 */
-      body { margin: 0; background: ${bg}; }
-      .wrap { display: inline-block; padding: ${pad}px; }
-      .wrap .katex { color: ${color} !important; font-size: ${pxSize}px !important; font-family: ${fontFamily} !important; }
-      .wrap .katex * { color: inherit !important; }
+      
+      body { 
+        margin: 0; 
+        background: ${bg}; 
+      }
+      
+      .wrap { 
+        display: inline-block; 
+        padding: ${pad}px;
+      }
+      
+      /* 应用用户自定义：字号和颜色 */
+      .wrap .katex {
+        font-size: ${pxSize}px !important;
+        color: ${color} !important;
+      }
+      
+      .wrap .katex * {
+        color: inherit !important;
+      }
+      
+      /* 对于某些特定字体，尝试覆盖 */
+      ${fontFamily.toLowerCase().includes('arial') || fontFamily.toLowerCase().includes('sans-serif') ? `
+      .wrap .katex .mord, 
+      .wrap .katex .mop,
+      .wrap .katex .mbin,
+      .wrap .katex .mrel {
+        font-family: Arial, sans-serif !important;
+      }` : ''}
+      
+      ${fontFamily.toLowerCase().includes('times') || fontFamily.toLowerCase().includes('serif') ? `
+      .wrap .katex .mord, 
+      .wrap .katex .mop,
+      .wrap .katex .mbin,
+      .wrap .katex .mrel {
+        font-family: "Times New Roman", serif !important;
+      }` : ''}
     </style>
   </head><body>
     <div class="wrap">${html}</div>
-  </body></html>`, { waitUntil: 'domcontentloaded' });
+  </body></html>`, { waitUntil: 'domcontentloaded', timeout: 5000 });
 
   const el = await page.$('.wrap');
   if (!el) throw new Error('渲染失败：未找到渲染容器');
