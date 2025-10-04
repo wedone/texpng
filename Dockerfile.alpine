@@ -13,7 +13,6 @@ RUN apk add --no-cache \
   freetype \
   harfbuzz \
   ca-certificates \
-  ttf-freefont \
   ttf-dejavu \
   ttf-liberation \
   dumb-init

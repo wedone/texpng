@@ -3,6 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import katex from 'katex';
+// 启用 KaTeX 的 mhchem 插件以支持 \ce{...}
+import 'katex/contrib/mhchem';
 import puppeteer from 'puppeteer';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,45 +50,41 @@ function normalizeFontFamily(input) {
 }
 
 function splitTextWithMath(input) {
-  // 返回片段数组：{ type: 'text' | 'inline' | 'block', content }
+  // 先规范化：将可能的双反斜杠定界符转为单反斜杠，避免多层转义导致无法匹配
+  const normalized = String(input)
+    .replace(/\\\(/g, '\\(')
+    .replace(/\\\)/g, '\\)')
+    .replace(/\\\[/g, '\\[')
+    .replace(/\\\]/g, '\\]');
+
+  // 全面支持 $...$、$$...$$、\(...\)、\[...\]，不受转义影响
   const result = [];
-  let i = 0;
-  const n = input.length;
-  while (i < n) {
-    const two = input.slice(i, i + 2);
-    if (two === '$$') {
-      // 块级，找到下一个 $$
-      const end = input.indexOf('$$', i + 2);
-      if (end !== -1) {
-        const content = input.slice(i + 2, end).trim();
-        result.push({ type: 'block', content });
-        i = end + 2;
-        continue;
-      }
+  // 顺序：$$...$$、\[...\]、$...$、\(...\)
+  const regex = /(\$\$([\s\S]+?)\$\$)|(\\\[([\s\S]+?)\\\])|(\$([\s\S]+?)\$)|(\\\(([\s\S]+?)\\\))/g;
+  // 说明：
+  //  - $$...$$    -> 分组1/2
+  //  - \[...\]   -> 分组3/4（单反斜杠）
+  //  - $...$      -> 分组5/6
+  //  - \(...\)   -> 分组7/8（单反斜杠）
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(normalized)) !== null) {
+    if (match.index > lastIndex) {
+      result.push({ type: 'text', content: normalized.slice(lastIndex, match.index) });
     }
-    if (input[i] === '$') {
-      // 行内，找到下一个非转义 $
-      let j = i + 1;
-      while (j < n) {
-        if (input[j] === '$' && input[j - 1] !== '\\') break;
-        j++;
-      }
-      if (j < n) {
-        const content = input.slice(i + 1, j).trim();
-        result.push({ type: 'inline', content });
-        i = j + 1;
-        continue;
-      }
+    if (match[1]) { // $$...$$
+      result.push({ type: 'block', content: match[2] });
+    } else if (match[3]) { // \[...\]
+      result.push({ type: 'block', content: match[4] });
+    } else if (match[5]) { // $...$
+      result.push({ type: 'inline', content: match[6] });
+    } else if (match[7]) { // \(...\)
+      result.push({ type: 'inline', content: match[8] });
     }
-    // 文本
-    let j = i + 1;
-    while (j < n) {
-      const ahead2 = input.slice(j, j + 2);
-      if (ahead2 === '$$' || input[j] === '$') break;
-      j++;
-    }
-    result.push({ type: 'text', content: input.slice(i, j) });
-    i = j;
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < normalized.length) {
+    result.push({ type: 'text', content: normalized.slice(lastIndex) });
   }
   return result;
 }
@@ -98,11 +96,12 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
     throwOnError: false,
     output: 'htmlAndMathml',
     strict: 'ignore',
+    trust: true,
   });
   const css = await getKatexCss();
 
   const {
-    fontFamily = 'KaTeX_Main, Cambria Math, STIXGeneral, Times New Roman, serif',
+    fontFamily = 'KaTeX_Main, KaTeX_Math, STIXGeneral, Cambria Math, serif',
     fontSize = 20,
     color = '#000000',
     background = 'transparent'
@@ -142,17 +141,18 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
         margin: 0 !important;
       }
       
-      /* 应用用户自定义：字号、颜色、字体 */
+      /* 应用用户自定义：字号、颜色；
+         注意：不要强制覆盖子元素的 color/font-family，
+         以免破坏 KaTeX 内部使用的透明度量字符，导致可见的“X”出现。 */
       .wrap .katex {
-        font-size: ${pxSize}px !important;
-        color: ${color} !important;
-        font-family: ${normalizedFontFamily} !important;
+        font-size: ${pxSize}px;
+        color: ${color};
+        /* 允许用户自定义字体，但不使用 !important，避免覆盖 KaTeX 的专用字体 */
+        font-family: ${normalizedFontFamily};
       }
-      
-      .wrap .katex * {
-        color: inherit !important;
-        font-family: inherit !important;
-      }
+
+      /* 显式隐藏 KaTeX 用于字号度量的占位元素，防止出现可见的 "X" */
+      .wrap .katex .fontsize-ensurer { visibility: hidden; }
       
       /* 对于某些特定字体，尝试覆盖 */
       /* 不强制覆盖 serif/sans-serif 的具体实现，尊重用户传入的 font-family 链 */
@@ -174,7 +174,15 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
 
 export async function renderAndReplace(text, options = {}) {
   await ensureDirs();
-  const parts = splitTextWithMath(text);
+  // 规范化输入：将可能出现的双反斜杠定界符规整为单反斜杠，便于识别
+  // 例如 "\\(" -> "\(", "\\]" -> "\]"
+  const normalizedText = String(text)
+    .replace(/\\\(/g, '\\(')
+    .replace(/\\\)/g, '\\)')
+    .replace(/\\\[/g, '\\[')
+    .replace(/\\\]/g, '\\]');
+
+  const parts = splitTextWithMath(normalizedText);
   const out = [];
 
   const browser = await puppeteer.launch({

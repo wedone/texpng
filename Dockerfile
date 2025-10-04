@@ -15,8 +15,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
       chromium \
       ca-certificates \
-      fonts-noto-cjk \
-      fonts-noto-color-emoji \
+      fonts-stix \
+      fonts-lmodern \
       fonts-liberation \
       fonts-dejavu-core \
       dumb-init; \

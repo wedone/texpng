@@ -11,7 +11,7 @@
   },
   "keywords": [
     "latex",
-    "katex", 
+    "katex",
     "math",
     "formula",
     "png",
@@ -37,7 +37,7 @@
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "katex": "^0.16.22",
+    "katex": "^0.16.23",
     "puppeteer": "^24.23.0",
     "uuid": "^13.0.0"
   }
