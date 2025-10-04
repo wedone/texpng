@@ -111,6 +111,15 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
         padding: ${pad}px;
       }
       
+      /* 减少 KaTeX 的默认间距 */
+      .wrap .katex-display {
+        margin: 0 !important;
+      }
+      
+      .wrap .katex {
+        margin: 0 !important;
+      }
+      
       /* 应用用户自定义：字号和颜色 */
       .wrap .katex {
         font-size: ${pxSize}px !important;
@@ -118,6 +127,8 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
       }
       
       .wrap .katex * {
+        color: inherit !important;
+      }
         color: inherit !important;
       }
       
@@ -167,10 +178,20 @@ export async function renderAndReplace(text, options = {}) {
     const deviceScaleFactor = Number(options.scale || 2) || 2;
     await page.setViewport({ width: 800, height: 600, deviceScaleFactor });
 
-    for (const p of parts) {
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      const nextPart = parts[i + 1];
+      
       if (p.type === 'text') {
-        // 转义 HTML
-        const safe = p.content
+        // 转义 HTML，但对于行间公式后的换行符进行特殊处理
+        let content = p.content;
+        
+        // 如果前一个是行间公式，且当前文本以换行开始，则去掉开头的换行
+        if (i > 0 && parts[i - 1].type === 'block' && content.startsWith('\n')) {
+          content = content.slice(1);
+        }
+        
+        const safe = content
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
