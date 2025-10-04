@@ -1,3 +1,49 @@
+## 🐙 GHCR 镜像拉取与部署
+
+### 拉取镜像
+
+以 debian 版为例：
+
+```powershell
+docker pull ghcr.io/<你的用户名或组织>/texpng:debian
+docker pull ghcr.io/<你的用户名或组织>/texpng:alpine
+```
+
+如需指定版本：
+
+```powershell
+docker pull ghcr.io/<你的用户名或组织>/texpng:debian-1.0.0
+docker pull ghcr.io/<你的用户名或组织>/texpng:alpine-1.0.0
+```
+
+### 用 Compose 直接部署 GHCR 镜像
+
+修改 compose.yaml：
+
+```yaml
+services:
+  texpng:
+    image: ghcr.io/<你的用户名或组织>/texpng:debian
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./public/images:/app/public/images
+    environment:
+      - NODE_ENV=production
+```
+
+然后运行：
+
+```powershell
+docker compose up
+```
+
+如需拉取最新镜像并重建：
+
+```powershell
+docker compose pull
+docker compose up --force-recreate
+```
 # TeX to PNG Converter
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
