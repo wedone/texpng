@@ -1,0 +1,23 @@
+{
+  "name": "texpng",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.js",
+    "start": "node server/index.js"
+  },
+  "description": "基于 Node.js 的小工具：\r - 后端：Express + KaTeX + Puppeteer，将 `$...$` 与 `$$...$$` 公式渲染为 PNG 图片。\r - 前端：简单页面，左侧输入混合文本，右侧展示替换为 `<img>` 的输出。",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "katex": "^0.16.22",
+    "puppeteer": "^24.23.0",
+    "uuid": "^13.0.0"
+  }
+}
