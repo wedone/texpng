@@ -8,16 +8,15 @@ ENV NODE_ENV=production \
 
 # 安装 Chromium 与常用依赖/字体
 RUN apk add --no-cache \
-      chromium \
-      nss \
-      freetype \
-      harfbuzz \
-      ca-certificates \
-      ttf-freefont \
-      noto-fonts \
-      noto-fonts-cjk \
-      noto-fonts-emoji \
-      dumb-init
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont \
+  ttf-dejavu \
+  ttf-liberation \
+  dumb-init
 
 WORKDIR /app
 

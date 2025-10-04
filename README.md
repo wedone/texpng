@@ -5,15 +5,15 @@
 以 debian 版为例：
 
 ```powershell
-docker pull ghcr.io/<你的用户名或组织>/texpng:debian
-docker pull ghcr.io/<你的用户名或组织>/texpng:alpine
+docker pull ghcr.io/wedone/texpng:debian
+docker pull ghcr.io/wedone/texpng:alpine
 ```
 
 如需指定版本：
 
 ```powershell
-docker pull ghcr.io/<你的用户名或组织>/texpng:debian-1.0.0
-docker pull ghcr.io/<你的用户名或组织>/texpng:alpine-1.0.0
+docker pull ghcr.io/wedone/texpng:debian-1.0.0
+docker pull ghcr.io/wedone/texpng:alpine-1.0.0
 ```
 
 ### 用 Compose 直接部署 GHCR 镜像
@@ -23,7 +23,7 @@ docker pull ghcr.io/<你的用户名或组织>/texpng:alpine-1.0.0
 ```yaml
 services:
   texpng:
-    image: ghcr.io/<你的用户名或组织>/texpng:debian
+  image: ghcr.io/wedone/texpng:debian
     ports:
       - "3000:3000"
     volumes:
@@ -91,7 +91,7 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$
 
 ```bash
 # 克隆项目
-git clone https://github.com/yourusername/texpng.git
+git clone https://github.com/wedone/texpng.git
 cd texpng
 
 # 安装依赖
@@ -143,7 +143,7 @@ docker compose up --build
     docker run --rm -p 3000:3000 texpng:alpine
     ```
   
-  - Alpine 已安装 `chromium`、Noto 字体与 Emoji；如需额外字体，可挂载到 `/usr/share/fonts` 并刷新字体缓存（Alpine 可安装 `fontconfig` 后执行 `fc-cache -f -v`）。
+  - Alpine 镜像已安装 `chromium`、`ttf-freefont`、`ttf-dejavu`、`ttf-liberation`，可满足常见西文/等宽/部分符号需求。如需额外字体，可挂载到 `/usr/share/fonts` 并（可选）安装 `fontconfig` 后执行 `fc-cache -f -v`。
 
 - 镜像已安装系统 Chromium 并通过环境变量配置：
   - `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`
@@ -343,7 +343,7 @@ A: 在网络受限环境下，可设置 `PUPPETEER_SKIP_DOWNLOAD=true` 并手动
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/texpng.git
+git clone https://github.com/wedone/texpng.git
 cd texpng
 
 # 安装依赖
@@ -374,7 +374,7 @@ npm run dev
 
 - 作者：[你的名字]
 - 邮箱：[你的邮箱]
-- 项目主页：https://github.com/yourusername/texpng
+- 项目主页：https://github.com/wedone/texpng
 
 ---
 
