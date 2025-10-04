@@ -1,17 +1,38 @@
 {
   "name": "texpng",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "A web-based tool to convert LaTeX math formulas to PNG images using KaTeX and Puppeteer",
+  "main": "server/index.js",
   "type": "module",
   "scripts": {
+    "start": "node server/index.js",
     "dev": "node server/index.js",
-    "start": "node server/index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "description": "基于 Node.js 的小工具：\r - 后端：Express + KaTeX + Puppeteer，将 `$...$` 与 `$$...$$` 公式渲染为 PNG 图片。\r - 前端：简单页面，左侧输入混合文本，右侧展示替换为 `<img>` 的输出。",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "latex",
+    "katex", 
+    "math",
+    "formula",
+    "png",
+    "converter",
+    "puppeteer",
+    "express",
+    "web"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/texpng.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/texpng/issues"
+  },
+  "homepage": "https://github.com/yourusername/texpng#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
