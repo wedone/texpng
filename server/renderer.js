@@ -27,6 +27,26 @@ async function ensureDirs() {
   await fs.mkdir(imageDir, { recursive: true });
 }
 
+function normalizeFontFamily(input) {
+  if (!input) return 'KaTeX_Main, Cambria Math, STIXGeneral, "Times New Roman", serif';
+  // 拆分逗号分隔的字体族，修剪空白，为包含空格或特殊字符的字体名补充引号
+  const parts = String(input)
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(name => {
+      const lower = name.toLowerCase();
+      // 通用族名不加引号
+      if (['serif','sans-serif','monospace','cursive','fantasy','system-ui'].includes(lower)) return lower;
+      // 已加引号的保持
+      if ((name.startsWith('"') && name.endsWith('"')) || (name.startsWith("'") && name.endsWith("'"))) return name;
+      // 含空格或连字符等，补双引号
+      if (/[^a-z0-9_-]/i.test(name)) return `"${name}"`;
+      return name;
+    });
+  return parts.join(', ');
+}
+
 function splitTextWithMath(input) {
   // 返回片段数组：{ type: 'text' | 'inline' | 'block', content }
   const result = [];
@@ -95,6 +115,8 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
   const pad = Math.max(0, Number(padding) || 0);
   const pxSize = Math.max(1, Number(fontSize) || 1);
 
+  const normalizedFontFamily = normalizeFontFamily(fontFamily);
+
   await page.setContent(`<!doctype html><html><head>
     <meta charset="utf-8" />
     <style>
@@ -120,34 +142,20 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
         margin: 0 !important;
       }
       
-      /* 应用用户自定义：字号和颜色 */
+      /* 应用用户自定义：字号、颜色、字体 */
       .wrap .katex {
         font-size: ${pxSize}px !important;
         color: ${color} !important;
+        font-family: ${normalizedFontFamily} !important;
       }
       
       .wrap .katex * {
         color: inherit !important;
-      }
-        color: inherit !important;
+        font-family: inherit !important;
       }
       
       /* 对于某些特定字体，尝试覆盖 */
-      ${fontFamily.toLowerCase().includes('arial') || fontFamily.toLowerCase().includes('sans-serif') ? `
-      .wrap .katex .mord, 
-      .wrap .katex .mop,
-      .wrap .katex .mbin,
-      .wrap .katex .mrel {
-        font-family: Arial, sans-serif !important;
-      }` : ''}
-      
-      ${fontFamily.toLowerCase().includes('times') || fontFamily.toLowerCase().includes('serif') ? `
-      .wrap .katex .mord, 
-      .wrap .katex .mop,
-      .wrap .katex .mbin,
-      .wrap .katex .mrel {
-        font-family: "Times New Roman", serif !important;
-      }` : ''}
+      /* 不强制覆盖 serif/sans-serif 的具体实现，尊重用户传入的 font-family 链 */
     </style>
   </head><body>
     <div class="wrap">${html}</div>
@@ -200,7 +208,13 @@ export async function renderAndReplace(text, options = {}) {
       } else if (p.type === 'inline' || p.type === 'block') {
         const url = await renderFormulaToPng(page, p.content, p.type === 'block', options);
         const cls = p.type === 'block' ? 'formula-block' : 'formula-inline';
-        out.push(`<img class=\"${cls}\" alt=\"${p.content.replace(/\"/g, '&quot;')}\" src=\"${url}\" />`);
+        const alt = p.content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+        out.push(`<img class="${cls}" alt="${alt}" src="${url}" />`);
       }
     }
     return out.join('');

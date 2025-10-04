@@ -59,7 +59,7 @@ node server/index.js
 
 ### 访问应用
 - Web 界面：http://localhost:3000
-- API 端点：http://localhost:3000/api/renderool
+- API 端点：http://localhost:3000/api/render
 
 基于 Node.js 的小工具：
 - 后端：Express + KaTeX + Puppeteer，将 `$...$` 与 `$$...$$` 公式渲染为 PNG 图片。
