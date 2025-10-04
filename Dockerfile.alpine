@@ -15,6 +15,8 @@ RUN apk add --no-cache \
   ca-certificates \
   ttf-dejavu \
   ttf-liberation \
+  texlive \
+  fontconfig \
   dumb-init
 
 WORKDIR /app

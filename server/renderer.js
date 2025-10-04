@@ -30,7 +30,7 @@ async function ensureDirs() {
 }
 
 function normalizeFontFamily(input) {
-  if (!input) return 'KaTeX_Main, Cambria Math, STIXGeneral, "Times New Roman", serif';
+  if (!input) return '"Latin Modern Math", KaTeX_Main, KaTeX_Math, "STIX Two Math", STIXGeneral, "Cambria Math", serif';
   // 拆分逗号分隔的字体族，修剪空白，为包含空格或特殊字符的字体名补充引号
   const parts = String(input)
     .split(',')
@@ -101,7 +101,7 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
   const css = await getKatexCss();
 
   const {
-    fontFamily = 'KaTeX_Main, KaTeX_Math, STIXGeneral, Cambria Math, serif',
+    fontFamily = '"Latin Modern Math", KaTeX_Main, KaTeX_Math, "STIX Two Math", STIXGeneral, "Cambria Math", serif',
     fontSize = 20,
     color = '#000000',
     background = 'transparent'

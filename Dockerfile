@@ -9,7 +9,7 @@ ENV NODE_ENV=production \
     # Debian/Ubuntu 上 chromium 的常见路径（bookworm 为 /usr/bin/chromium）
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# 安装 Chromium 与常用字体（含中日韩/Emoji/等宽/常见西文字体族）
+# 安装 Chromium 与常用字体（含数学字体），并包含 Latin Modern Math（由 texlive-fonts-extra 提供）
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -19,7 +19,10 @@ RUN set -eux; \
       fonts-lmodern \
       fonts-liberation \
       fonts-dejavu-core \
+      texlive-fonts-extra \
+      fontconfig \
       dumb-init; \
+    fc-cache -f; \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
