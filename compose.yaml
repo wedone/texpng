@@ -1,0 +1,17 @@
+services:
+  texpng:
+    build: .
+    image: texpng:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # 可按需覆盖端口
+      # - PORT=3000
+      # 如需指定自定义的 Chromium 路径，可覆盖：
+      # - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    # 将生成图片持久化到宿主机当前目录下的 public/images
+    volumes:
+      - ./public/images:/app/public/images
+    # 以非 root 方式运行镜像内的 node 用户
+    user: "1000:1000"

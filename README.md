@@ -61,6 +61,50 @@ node server/index.js
 - Web 界面：http://localhost:3000
 - API 端点：http://localhost:3000/api/render
 
+## 🐳 容器部署
+
+### 构建镜像（Windows PowerShell）
+
+```powershell
+docker build -t texpng:latest .
+```
+
+### 运行容器
+
+```powershell
+# 将容器 3000 端口映射到宿主 3000，并持久化生成的图片
+docker run --rm -p 3000:3000 `
+  -e NODE_ENV=production `
+  -v ${PWD}/public/images:/app/public/images `
+  --name texpng `
+  texpng:latest
+```
+
+访问：http://localhost:3000
+
+### 使用 Docker Compose
+
+```powershell
+docker compose up --build
+```
+
+### 关于 Puppeteer 与字体
+- 使用 Alpine 镜像
+  - 本项目也提供 `Dockerfile.alpine`（更小体积）。构建时指定：
+  
+    ```powershell
+    docker build -f Dockerfile.alpine -t texpng:alpine .
+    docker run --rm -p 3000:3000 texpng:alpine
+    ```
+  
+  - Alpine 已安装 `chromium`、Noto 字体与 Emoji；如需额外字体，可挂载到 `/usr/share/fonts` 并刷新字体缓存（Alpine 可安装 `fontconfig` 后执行 `fc-cache -f -v`）。
+
+- 镜像已安装系统 Chromium 并通过环境变量配置：
+  - `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`
+  - `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`
+- 预装了常见字体：Noto CJK、Emoji、Liberation/DejaVu 等，以提升渲染覆盖面。
+- 如需额外字体（例如特定商用字体），可在构建时 COPY 进镜像并安装，或在启动时挂载字体目录到 `/usr/share/fonts` 后执行 `fc-cache -f -v`。
+
 基于 Node.js 的小工具：
 - 后端：Express + KaTeX + Puppeteer，将 `$...$` 与 `$$...$$` 公式渲染为 PNG 图片。
 - 前端：简单页面，左侧输入混合文本，右侧展示替换为 `<img>` 的输出。
