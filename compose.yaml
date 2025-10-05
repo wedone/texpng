@@ -1,8 +1,14 @@
 services:
-  # 主服务（默认：直接使用 GHCR 镜像）
-  texpng:
-    container_name: texpng
-    image: ghcr.io/wedone/texpng:latest
+  # 主服务（默认：使用版本化 GHCR 镜像）
+  # 可通过环境变量覆盖：
+  #   REGISTRY   默认 ghcr.io/wedone
+  #   IMAGE_NAME 默认 tex2png
+  #   IMAGE_TAG  默认 1.1.0（对应 package.json 版本）
+  # .env 示例：
+  #   IMAGE_TAG=1.1.0
+  tex2png:
+    container_name: tex2png
+    image: "${REGISTRY:-ghcr.io/wedone}/${IMAGE_NAME:-tex2png}:${IMAGE_TAG:-1.1.0}"
     pull_policy: always
     ports:
       # 左侧可用环境变量覆盖对外端口，默认 3000
@@ -33,9 +39,9 @@ services:
     # user: "1000:1000"
 
   # 可选：Alpine 版本（体积更小，但字体/兼容性可能略有差异）
-  texpng-alpine:
+  tex2png-alpine:
     profiles: ["alpine"]
-    image: ghcr.io/wedone/texpng:alpine
+    image: "${REGISTRY:-ghcr.io/wedone}/${IMAGE_NAME:-tex2png}:${IMAGE_TAG:-1.1.0}-alpine"
     pull_policy: always
     ports:
       - "${PORT:-3000}:3000"
@@ -49,7 +55,6 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
-    
       interval: 30s
       timeout: 5s
       retries: 5
@@ -57,12 +62,12 @@ services:
     # user: "1000:1000"
 
   # 可选：本地构建（使用 Dockerfile），仅在需要自定义时启用
-  texpng-build:
+  tex2png-build:
     profiles: ["build"]
     build:
       context: .
       dockerfile: Dockerfile
-    image: texpng:local
+    image: "tex2png:local"
     ports:
       - "${PORT:-3000}:3000"
     environment:

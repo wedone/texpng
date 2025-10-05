@@ -347,22 +347,17 @@
       max-width: 100%;
       height: auto;
       border-radius: var(--radius-sm);
-      /* 使用 transform 缩放到 50%，保持图片原始比例 */
-      transform: scale(0.5);
-      transform-origin: left center;
     }
 
     .output-area img.formula-block {
       display: block;
       margin: 0.5rem auto;
-      transform-origin: center center;
     }
 
     .output-area img.formula-inline {
       display: inline;
       vertical-align: middle;
-      margin: 0 0.25rem;
-      transform-origin: left center;
+      margin: 0; /* 去掉左右外边距，避免看起来像多出一个空格 */
     }
 
     /* 响应式设计 */
@@ -483,7 +478,7 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">字号 (px)</label>
-              <input id="fontSize" type="number" min="8" max="200" step="1" value="20" class="form-input" />
+              <input id="fontSize" type="number" min="8" max="200" step="1" value="18" class="form-input" />
             </div>
             <div class="form-group">
               <label class="form-label">字体颜色</label>
@@ -515,7 +510,7 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">内边距 (px)</label>
-              <input id="padding" type="number" min="0" max="64" step="1" value="4" class="form-input" />
+              <input id="padding" type="number" min="0" max="64" step="1" value="1" class="form-input" />
             </div>
             <div class="form-group">
               <label class="form-label">缩放</label>
@@ -565,10 +560,10 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
       const scaleInput = document.getElementById('scale').value;
       return {
         fontFamily: document.getElementById('fontFamily').value,
-        fontSize: Number(document.getElementById('fontSize').value) || 20,
+  fontSize: Number(document.getElementById('fontSize').value) || 18,
         color: document.getElementById('color').value,
         background: document.getElementById('background').value,
-        padding: paddingInput === '' ? 4 : Number(paddingInput),
+  padding: paddingInput === '' ? 1 : Number(paddingInput),
         scale: scaleInput === '' ? 2 : Number(scaleInput)
       };
     }
@@ -595,6 +590,26 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
         
         output.className = 'output-area has-content';
         output.innerHTML = data.html;
+        // 将公式图片显示宽度设置为原始宽度的 50%，保证页面占位同步缩小
+        const applyScale = () => {
+          const imgs = output.querySelectorAll('img.formula-inline, img.formula-block');
+          imgs.forEach(img => {
+            const scale = 0.5;
+            const apply = () => {
+              if (img.naturalWidth) {
+                img.style.width = Math.round(img.naturalWidth * scale) + 'px';
+                img.style.height = 'auto';
+              }
+            };
+            if (img.complete) {
+              apply();
+            } else {
+              img.addEventListener('load', apply, { once: true });
+            }
+          });
+        };
+        // 初次渲染应用一次
+        applyScale();
       } catch (e) {
         output.className = 'output-area';
         output.innerHTML = `<div style="color: var(--danger-color); text-align: center; padding: 2rem;">

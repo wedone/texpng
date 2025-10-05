@@ -5,15 +5,15 @@
 以 debian 版为例：
 
 ```powershell
-docker pull ghcr.io/wedone/texpng:debian
-docker pull ghcr.io/wedone/texpng:alpine
+docker pull ghcr.io/wedone/tex2png:debian
+docker pull ghcr.io/wedone/tex2png:alpine
 ```
 
 如需指定版本：
 
 ```powershell
-docker pull ghcr.io/wedone/texpng:debian-1.0.0
-docker pull ghcr.io/wedone/texpng:alpine-1.0.0
+docker pull ghcr.io/wedone/tex2png:debian-1.0.0
+docker pull ghcr.io/wedone/tex2png:alpine-1.0.0
 ```
 
 ### 用 Compose 直接部署 GHCR 镜像
@@ -22,8 +22,8 @@ docker pull ghcr.io/wedone/texpng:alpine-1.0.0
 
 ```yaml
 services:
-  texpng:
-  image: ghcr.io/wedone/texpng:debian
+  tex2png:
+  image: ghcr.io/wedone/tex2png:debian
     ports:
       - "3000:3000"
     volumes:
@@ -44,7 +44,7 @@ docker compose up
 docker compose pull
 docker compose up --force-recreate
 ```
-# TeX to PNG Converter
+# tex2png - TeX to PNG Converter
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -91,8 +91,8 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$
 
 ```bash
 # 克隆项目
-git clone https://github.com/wedone/texpng.git
-cd texpng
+git clone https://github.com/wedone/tex2png.git
+cd tex2png
 
 # 安装依赖
 npm install
@@ -112,7 +112,7 @@ node server/index.js
 ### 构建镜像（Windows PowerShell）
 
 ```powershell
-docker build -t texpng:latest .
+docker build -t tex2png:latest .
 ```
 
 ### 运行容器
@@ -122,8 +122,8 @@ docker build -t texpng:latest .
 docker run --rm -p 3000:3000 `
   -e NODE_ENV=production `
   -v ${PWD}/public/images:/app/public/images `
-  --name texpng `
-  texpng:latest
+  --name tex2png `
+  tex2png:latest
 ```
 
 访问：http://localhost:3000
@@ -139,8 +139,8 @@ docker compose up --build
   - 本项目也提供 `Dockerfile.alpine`（更小体积）。构建时指定：
   
     ```powershell
-    docker build -f Dockerfile.alpine -t texpng:alpine .
-    docker run --rm -p 3000:3000 texpng:alpine
+    docker build -f Dockerfile.alpine -t tex2png:alpine .
+    docker run --rm -p 3000:3000 tex2png:alpine
     ```
   
   - Alpine 镜像已安装 `chromium`、`ttf-freefont`、`ttf-dejavu`、`ttf-liberation`，可满足常见西文/等宽/部分符号需求。如需额外字体，可挂载到 `/usr/share/fonts` 并（可选）安装 `fontconfig` 后执行 `fc-cache -f -v`。
@@ -290,7 +290,7 @@ print(result['html'])
 ## 📁 项目结构
 
 ```
-texpng/
+tex2png/
 ├── server/
 │   ├── index.js          # Express 服务器入口
 │   └── renderer.js       # 公式解析和渲染逻辑
@@ -343,8 +343,8 @@ A: 在网络受限环境下，可设置 `PUPPETEER_SKIP_DOWNLOAD=true` 并手动
 
 ```bash
 # 克隆仓库
-git clone https://github.com/wedone/texpng.git
-cd texpng
+git clone https://github.com/wedone/tex2png.git
+cd tex2png
 
 # 安装依赖
 npm install
@@ -374,7 +374,7 @@ npm run dev
 
 - 作者：[你的名字]
 - 邮箱：[你的邮箱]
-- 项目主页：https://github.com/wedone/texpng
+- 项目主页：https://github.com/wedone/tex2png
 
 ---
 

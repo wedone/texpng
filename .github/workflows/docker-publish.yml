@@ -1,4 +1,4 @@
-name: Build and Publish Docker Images
+name: Build and Publish tex2png Docker Images
 
 on:
   workflow_dispatch:
@@ -62,10 +62,14 @@ jobs:
           push: ${{ github.event.inputs.push != 'false' }}
           provenance: false
           tags: |
-            ghcr.io/${{ steps.vars.outputs.owner }}/texpng:${{ matrix.suffix }}
-            ghcr.io/${{ steps.vars.outputs.owner }}/texpng:${{ matrix.suffix }}-${{ steps.vars.outputs.short }}
-            ${{ matrix.id == 'debian' && steps.vars.outputs.refname == 'main' && format('ghcr.io/{0}/texpng:latest', steps.vars.outputs.owner) || '' }}
-            ${{ steps.vars.outputs.version && format('ghcr.io/{0}/texpng:{1}-{2}', steps.vars.outputs.owner, matrix.suffix, steps.vars.outputs.version) || '' }}
-            ${{ matrix.id == 'debian' && steps.vars.outputs.version && format('ghcr.io/{0}/texpng:v{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/tex2png:${{ matrix.suffix }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/tex2png:${{ matrix.suffix }}-${{ steps.vars.outputs.short }}
+            # 版本化标签：
+            # - Debian: v{version} / {version} / latest (仅 main 分支)
+            # - Alpine: {version}-alpine
+            ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/tex2png:v{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
+            ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/tex2png:{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
+            ${{ steps.vars.outputs.version && matrix.id == 'alpine' && format('ghcr.io/{0}/tex2png:{1}-alpine', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
+            ${{ matrix.id == 'debian' && steps.vars.outputs.refname == 'main' && format('ghcr.io/{0}/tex2png:latest', steps.vars.outputs.owner) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -102,13 +102,13 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
 
   const {
     fontFamily = '"Latin Modern Math", KaTeX_Main, KaTeX_Math, "STIX Two Math", STIXGeneral, "Cambria Math", serif',
-    fontSize = 20,
+    fontSize = 18,
     color = '#000000',
     background = 'transparent'
   } = options || {};
   
-  // 允许 padding 为 0，只有未设置时才用默认值 4
-  const padding = options.padding !== undefined ? options.padding : 4;
+  // 允许 padding 为 0，只有未设置时才用默认值 1
+  const padding = options.padding !== undefined ? options.padding : 1;
 
   const bg = String(background).toLowerCase();
   const pad = Math.max(0, Number(padding) || 0);
@@ -130,6 +130,8 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
       .wrap { 
         display: inline-block; 
         padding: ${pad}px;
+        /* 避免行高造成的额外上下空隙 */
+        line-height: 0;
       }
       
       /* 减少 KaTeX 的默认间距 */
@@ -163,12 +165,11 @@ async function renderFormulaToPng(page, latex, displayMode = false, options = {}
 
   const el = await page.$('.wrap');
   if (!el) throw new Error('渲染失败：未找到渲染容器');
-  const box = await el.boundingBox();
-  if (!box) throw new Error('渲染失败：无法计算尺寸');
   const id = uuidv4();
   const outPath = path.join(imageDir, `${id}.png`);
   const transparent = bg === 'transparent' || bg === 'rgba(0,0,0,0)' || bg === 'hsla(0,0%,0%,0)';
-  await el.screenshot({ path: outPath, omitBackground: transparent, clip: box });
+  // 直接对元素截图，避免手动 clip 时像素取整带来的额外 1-2px 空隙
+  await el.screenshot({ path: outPath, omitBackground: transparent });
   return `/images/${id}.png`;
 }
 
