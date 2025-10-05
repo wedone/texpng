@@ -1,17 +1,82 @@
 services:
+  # 主服务（默认：直接使用 GHCR 镜像）
   texpng:
-    build: .
-    image: texpng:latest
+    container_name: texpng
+    image: ghcr.io/wedone/texpng:latest
+    pull_policy: always
     ports:
-      - "3000:3000"
+      # 左侧可用环境变量覆盖对外端口，默认 3000
+      - "${PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
-      # 可按需覆盖端口
-      # - PORT=3000
-      # 如需指定自定义的 Chromium 路径，可覆盖：
+      # 应用监听端口（容器内部始终是 3000）
+      - PORT=3000
+      # 可修改时区
+      - TZ=Asia/Shanghai
+      # 如需自定义 Chromium 路径，可覆盖（镜像中已设置）
       # - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
     # 将生成图片持久化到宿主机当前目录下的 public/images
     volumes:
       - ./public/images:/app/public/images
-    # 以非 root 方式运行镜像内的 node 用户
-    user: "1000:1000"
+    # Chrome/Chromium 依赖较大的共享内存，避免崩溃
+    shm_size: "256m"
+    # 容器退出后自动重启，除非被显式停止
+    restart: unless-stopped
+    # 健康检查：等待服务启动后探活首页
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # 注意：在 Windows 主机挂载卷时强制指定 user 可能造成权限问题，故默认注释
+    # user: "1000:1000"
+
+  # 可选：Alpine 版本（体积更小，但字体/兼容性可能略有差异）
+  texpng-alpine:
+    profiles: ["alpine"]
+    image: ghcr.io/wedone/texpng:alpine
+    pull_policy: always
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./public/images:/app/public/images
+    shm_size: "256m"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+    
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # user: "1000:1000"
+
+  # 可选：本地构建（使用 Dockerfile），仅在需要自定义时启用
+  texpng-build:
+    profiles: ["build"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: texpng:local
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./public/images:/app/public/images
+    shm_size: "256m"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # user: "1000:1000"

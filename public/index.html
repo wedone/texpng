@@ -347,18 +347,22 @@
       max-width: 100%;
       height: auto;
       border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-sm);
+      /* 使用 transform 缩放到 50%，保持图片原始比例 */
+      transform: scale(0.5);
+      transform-origin: left center;
     }
 
     .output-area img.formula-block {
       display: block;
       margin: 0.5rem auto;
+      transform-origin: center center;
     }
 
     .output-area img.formula-inline {
       display: inline;
       vertical-align: middle;
       margin: 0 0.25rem;
+      transform-origin: left center;
     }
 
     /* 响应式设计 */
