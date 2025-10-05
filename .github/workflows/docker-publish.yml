@@ -64,9 +64,6 @@ jobs:
           tags: |
             ghcr.io/${{ steps.vars.outputs.owner }}/tex2png:${{ matrix.suffix }}
             ghcr.io/${{ steps.vars.outputs.owner }}/tex2png:${{ matrix.suffix }}-${{ steps.vars.outputs.short }}
-            # 版本化标签：
-            # - Debian: v{version} / {version} / latest (仅 main 分支)
-            # - Alpine: {version}-alpine
             ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/tex2png:v{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
             ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/tex2png:{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
             ${{ steps.vars.outputs.version && matrix.id == 'alpine' && format('ghcr.io/{0}/tex2png:{1}-alpine', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
