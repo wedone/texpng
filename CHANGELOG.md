@@ -29,7 +29,7 @@
 - 行内公式图片默认移除左右外边距，避免视觉上“多一个空格”
 - 截图方式改用 `element.screenshot`，并在 `.wrap` 上设置 `line-height: 0`，减少上下额外 1–2px 的边界
 - 默认渲染参数调整：`fontSize=18`、`padding=1`
-- 项目更名：`texpng` → `tex2png`，同步更新镜像名、工作流、Compose 与文档
+- 项目更名：`texpng` → `texpng`，同步更新镜像名、工作流、Compose 与文档
 
 ### 修复
 - 行间公式后的换行处理更自然
@@ -81,7 +81,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - 预览缩放从 transform 改为设置图片实际宽度，保证占位与视觉一致
- tex2png/
+ texpng/
 - Formula caching mechanism
 - Browser instance pooling for better performance
 - Automatic image cleanup

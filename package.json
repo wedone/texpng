@@ -1,5 +1,5 @@
 {
-  "name": "tex2png",
+  "name": "texpng",
   "version": "1.1.0",
   "description": "A web-based tool to convert LaTeX math formulas to PNG images using KaTeX and Puppeteer",
   "main": "server/index.js",
@@ -24,12 +24,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wedone/tex2png.git"
+    "url": "https://github.com/wedone/texpng.git"
   },
   "bugs": {
-    "url": "https://github.com/wedone/tex2png/issues"
+    "url": "https://github.com/wedone/texpng/issues"
   },
-  "homepage": "https://github.com/wedone/tex2png#readme",
+  "homepage": "https://github.com/wedone/texpng#readme",
   "engines": {
     "node": ">=18.0.0"
   },
