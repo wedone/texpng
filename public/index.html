@@ -437,12 +437,15 @@
           <button id="pasteBtn" class="btn btn-secondary">
             <span>📥</span> 粘贴
           </button>
-          <button id="renderBtn" class="btn btn-primary">
+          <button id="renderBtn" class="btn btn-secondary">
             <span>🚀</span> 转换
           </button>
           <button id="sampleBtn" class="btn btn-secondary">
             <span>📋</span> 示例
           </button>
+          <label style="display:inline-flex; align-items:center; gap:0.5rem; margin-left:0.5rem;">
+            <input id="autoConvert" type="checkbox" /> <span style="font-size:0.9rem;color:var(--text-secondary);">自动转换</span>
+          </label>
           <div class="hint">
             支持 <code>$公式$</code>、<code>$$公式$$</code>、<code>\(公式\)</code>、<code>\[公式\]</code>、<code>\ce{化学式}</code>
             <span class="keyboard-shortcut">Ctrl+Enter</span>
@@ -633,6 +636,7 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
   const pasteBtn = document.getElementById('pasteBtn');
   const copyBtn = document.getElementById('copyBtn');
   const copyFeedback = document.getElementById('copyFeedback');
+  const autoConvert = document.getElementById('autoConvert');
     document.getElementById('fontFamilyPreset').addEventListener('change', syncPresetToInputs);
     document.getElementById('colorPreset').addEventListener('change', syncPresetToInputs);
     document.getElementById('backgroundPreset').addEventListener('change', syncPresetToInputs);
@@ -681,6 +685,15 @@ c & d
           // 小提示
           copyFeedback.textContent = '已从剪贴板粘贴文本';
           setTimeout(() => { if (copyFeedback.textContent === '已从剪贴板粘贴文本') copyFeedback.textContent = ''; }, 2000);
+          // 若启用自动转换，则触发渲染（在粘贴完成后）
+          try {
+            if (autoConvert && autoConvert.checked) {
+              // 延迟一点时间让 DOM 更新稳定
+              setTimeout(() => { renderNow(); }, 50);
+            }
+          } catch (e) {
+            // 忽略渲染触发错误
+          }
         } else {
           copyFeedback.textContent = '剪贴板为空';
           setTimeout(() => { if (copyFeedback.textContent === '剪贴板为空') copyFeedback.textContent = ''; }, 2000);
