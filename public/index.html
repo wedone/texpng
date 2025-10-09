@@ -434,6 +434,9 @@
       </div>
       <div class="panel-content">
         <div class="toolbar">
+          <button id="pasteBtn" class="btn btn-secondary">
+            <span>📥</span> 粘贴
+          </button>
           <button id="renderBtn" class="btn btn-primary">
             <span>🚀</span> 转换
           </button>
@@ -484,15 +487,15 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
               <label class="form-label">字体颜色</label>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <select id="colorPreset" class="form-select" style="flex: 1;">
-                  <option value="#000000">黑色</option>
-                  <option value="#1f2328" selected>深灰</option>
+                  <option value="#000000" selected>黑色</option>
+                  <option value="#1f2328">深灰</option>
                   <option value="#6e7781">次要灰</option>
                   <option value="#0969da">蓝色</option>
                   <option value="#1f883d">绿色</option>
                   <option value="#d1242f">红色</option>
                   <option value="#bf3989">洋红</option>
                 </select>
-                <input id="color" type="color" value="#1f2328" class="form-input" />
+                <input id="color" type="color" value="#000000" class="form-input" />
               </div>
             </div>
             <div class="form-group">
@@ -530,6 +533,12 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
         <p class="panel-subtitle">转换后的 HTML 内容（公式已替换为图片）</p>
       </div>
       <div class="panel-content">
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.75rem;">
+          <button id="copyBtn" class="btn btn-secondary" title="复制输出 HTML 到剪贴板">
+            <span>📄</span> 复制
+          </button>
+          <div id="copyFeedback" style="font-size:0.9rem;color:var(--text-muted);"></div>
+        </div>
         <div id="output" class="output-area">
           <div style="text-align: center; color: var(--text-muted); padding: 3rem;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
@@ -621,6 +630,9 @@ $$\int_0^1 x^2 dx = \frac{1}{3}$$"></textarea>
     }
 
     renderBtn.addEventListener('click', renderNow);
+  const pasteBtn = document.getElementById('pasteBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const copyFeedback = document.getElementById('copyFeedback');
     document.getElementById('fontFamilyPreset').addEventListener('change', syncPresetToInputs);
     document.getElementById('colorPreset').addEventListener('change', syncPresetToInputs);
     document.getElementById('backgroundPreset').addEventListener('change', syncPresetToInputs);
@@ -649,6 +661,59 @@ $$\\begin{pmatrix}
 a & b \\\\
 c & d
 \\end{pmatrix}$$`;
+    });
+    
+    // 粘贴功能：从剪贴板读取文本并插入到输入框（需要页面在安全上下文/用户手势）
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          input.focus();
+          // 将粘贴内容追加到当前光标位置
+          const start = input.selectionStart || 0;
+          const end = input.selectionEnd || 0;
+          const before = input.value.slice(0, start);
+          const after = input.value.slice(end);
+          input.value = before + text + after;
+          // 将光标移动到粘贴内容后
+          const pos = start + text.length;
+          input.setSelectionRange(pos, pos);
+          // 小提示
+          copyFeedback.textContent = '已从剪贴板粘贴文本';
+          setTimeout(() => { if (copyFeedback.textContent === '已从剪贴板粘贴文本') copyFeedback.textContent = ''; }, 2000);
+        } else {
+          copyFeedback.textContent = '剪贴板为空';
+          setTimeout(() => { if (copyFeedback.textContent === '剪贴板为空') copyFeedback.textContent = ''; }, 2000);
+        }
+      } catch (e) {
+        copyFeedback.textContent = '无法访问剪贴板：' + e.message;
+        setTimeout(() => { if (copyFeedback.textContent && copyFeedback.textContent.startsWith('无法访问剪贴板')) copyFeedback.textContent = ''; }, 3000);
+      }
+    });
+
+    // 复制功能：将输出区域的 HTML 复制到剪贴板
+    copyBtn.addEventListener('click', async () => {
+      try {
+        const html = output.innerHTML;
+        if (!html.trim()) {
+          copyFeedback.textContent = '没有输出可复制';
+          setTimeout(() => { if (copyFeedback.textContent === '没有输出可复制') copyFeedback.textContent = ''; }, 2000);
+          return;
+        }
+        // 优先使用异步 clipboard.write
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([output.innerText], { type: 'text/plain' }) })]);
+          copyFeedback.textContent = '已复制输出（HTML）到剪贴板';
+        } catch (err) {
+          // 回退到 writeText 仅复制纯文本
+          await navigator.clipboard.writeText(output.innerText);
+          copyFeedback.textContent = '已复制输出文本到剪贴板（浏览器不支持写入 HTML）';
+        }
+        setTimeout(() => { if (copyFeedback.textContent && copyFeedback.textContent.startsWith('已复制')) copyFeedback.textContent = ''; }, 2500);
+      } catch (e) {
+        copyFeedback.textContent = '复制失败：' + e.message;
+        setTimeout(() => { if (copyFeedback.textContent && copyFeedback.textContent.startsWith('复制失败')) copyFeedback.textContent = ''; }, 3000);
+      }
     });
     
     // 初始化同步一次
