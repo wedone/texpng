@@ -6,6 +6,7 @@ import katex from 'katex';
 // 启用 KaTeX 的 mhchem 插件以支持 \ce{...}
 import 'katex/contrib/mhchem';
 import puppeteer from 'puppeteer';
+import sanitizeHtml from 'sanitize-html';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -197,23 +198,14 @@ export async function renderAndReplace(text, options = {}) {
 
     for (let i = 0; i < parts.length; i++) {
       const p = parts[i];
-      const nextPart = parts[i + 1];
-      
+
       if (p.type === 'text') {
-        // 转义 HTML，但对于行间公式后的换行符进行特殊处理
+        // 不在此处对文本做实体化，保留原始文本（只做轻微修整）
         let content = p.content;
-        
-        // 如果前一个是行间公式，且当前文本以换行开始，则去掉开头的换行
         if (i > 0 && parts[i - 1].type === 'block' && content.startsWith('\n')) {
           content = content.slice(1);
         }
-        
-        const safe = content
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/\n/g, '<br/>');
-        out.push(safe);
+        out.push(content);
       } else if (p.type === 'inline' || p.type === 'block') {
         const url = await renderFormulaToPng(page, p.content, p.type === 'block', options);
         const cls = p.type === 'block' ? 'formula-block' : 'formula-inline';
@@ -226,7 +218,32 @@ export async function renderAndReplace(text, options = {}) {
         out.push(`<img class="${cls}" alt="${alt}" src="${url}" />`);
       }
     }
-    return out.join('');
+    // 拼接完成后统一处理并清理
+    let rawHtml = out.join('');
+
+    // 如果整个输出没有真实标签但包含实体化的标签（例如来自某些客户端），
+    // 尝试把常见实体还原为真实字符，让 sanitize-html 来安全地清洗它们。
+    const containsTag = /<\s*\/?\s*[a-zA-Z][^>]*>/.test(rawHtml);
+    const containsEntity = /&lt;/.test(rawHtml);
+    if (!containsTag && containsEntity) {
+      rawHtml = rawHtml
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+    }
+
+    const clean = sanitizeHtml(rawHtml, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat([ 'img', 'h1','h2','h3','h4','h5','h6' ]),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        img: [ 'src', 'alt', 'class', 'data-latex', 'data-scale' ]
+      },
+      allowedSchemesByTag: {
+        img: [ 'http', 'https', 'data' ]
+      }
+    });
+
+    return clean;
   } finally {
     await browser.close();
   }
