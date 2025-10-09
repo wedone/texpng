@@ -1,6 +1,6 @@
 {
   "name": "texpng",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A web-based tool to convert LaTeX math formulas to PNG images using KaTeX and Puppeteer",
   "main": "server/index.js",
   "type": "module",

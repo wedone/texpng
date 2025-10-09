@@ -64,7 +64,6 @@ jobs:
             ghcr.io/${{ steps.vars.outputs.owner }}/texpng:${{ matrix.suffix }}-${{ steps.vars.outputs.short }}
             ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/texpng:v{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
             ${{ steps.vars.outputs.version && matrix.id == 'debian' && format('ghcr.io/{0}/texpng:{1}', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
-            ${{ steps.vars.outputs.version && matrix.id == 'alpine' && format('ghcr.io/{0}/texpng:{1}-alpine', steps.vars.outputs.owner, steps.vars.outputs.version) || '' }}
             ${{ matrix.id == 'debian' && steps.vars.outputs.refname == 'main' && format('ghcr.io/{0}/texpng:latest', steps.vars.outputs.owner) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
