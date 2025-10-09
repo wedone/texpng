@@ -26,9 +26,7 @@ jobs:
           - id: debian
             dockerfile: Dockerfile
             suffix: debian
-          - id: alpine
-            dockerfile: Dockerfile.alpine
-            suffix: alpine
+
 
     steps:
       - name: Checkout

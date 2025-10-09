@@ -39,6 +39,7 @@
     "express": "^5.1.0",
     "katex": "^0.16.23",
     "puppeteer": "^24.23.0",
+    "sanitize-html": "^2.11.1",
     "uuid": "^13.0.0"
   }
 }
