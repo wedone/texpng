@@ -715,24 +715,20 @@ c & d
 \\end{pmatrix}$$`;
     });
     
-    // 粘贴功能：从剪贴板读取文本并插入到输入框（需要页面在安全上下文/用户手势）
+    // 粘贴功能：从剪贴板读取文本并覆盖输入框内容（需要页面在安全上下文/用户手势）
     pasteBtn.addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
         if (text) {
           input.focus();
-          // 将粘贴内容追加到当前光标位置
-          const start = input.selectionStart || 0;
-          const end = input.selectionEnd || 0;
-          const before = input.value.slice(0, start);
-          const after = input.value.slice(end);
-          input.value = before + text + after;
-          // 将光标移动到粘贴内容后
-          const pos = start + text.length;
+          // 覆盖输入框的全部内容为剪贴板文本（不是追加）
+          input.value = text;
+          // 将光标移动到文本末尾
+          const pos = text.length;
           input.setSelectionRange(pos, pos);
           // 小提示
-          copyFeedback.textContent = '已从剪贴板粘贴文本';
-          setTimeout(() => { if (copyFeedback.textContent === '已从剪贴板粘贴文本') copyFeedback.textContent = ''; }, 2000);
+          copyFeedback.textContent = '已从剪贴板粘贴文本（覆盖）';
+          setTimeout(() => { if (copyFeedback.textContent === '已从剪贴板粘贴文本（覆盖）') copyFeedback.textContent = ''; }, 2000);
           // 若启用自动转换，则触发渲染（在粘贴完成后）
           try {
             if (autoConvert && autoConvert.checked) {
